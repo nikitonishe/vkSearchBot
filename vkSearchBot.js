@@ -1,3 +1,4 @@
+'use_strict'
 var TelegramBot = require('node-telegram-bot-api'),
     requestHandler = require('./vkRequest/requestHandler'),
 	token = require('./config').telToken;
@@ -5,7 +6,7 @@ var TelegramBot = require('node-telegram-bot-api'),
 var bot = new TelegramBot(token, {polling: true} ),
     currentUsers = [];
 
-var cancelCurrentSearch = function(chatID){
+var cancelCurrentSearch = function(chatId){
     if(!currentUsers[chatId]){
         bot.sendMessage(chatId, 'Нет текущего поиска. /search - начать поиск');
         return;
@@ -20,16 +21,10 @@ var startSearching = function(chatId){
         bot.sendMessage(chatId, 'Поиск отменен.');
         delete currentUsers[chatId];
     }
-    var options = {
-        reply_markup: JSON.stringify({
-            keyboard: [
-                [
-                    { text: 'Пропустить' }
-                ]
-            ],
-            resize_keyboard: true
-        })
-    };
+    var options = {reply_markup: JSON.stringify({
+                    keyboard: [[{ text: 'Пропустить' }]],
+                    resize_keyboard: true
+    })};
     currentUsers[chatId] = {};
     currentUsers[chatId].step = 'hometown';
     setTimeout(()=>{
@@ -90,18 +85,20 @@ bot.on('text', function(message){
 
     if(currentUsers[chatId].step === 'count'){
         if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное колличество.(Напишите число)');
-        if(textMes !== 'Пропустить') currentUsers[chatId].count = textMes.match(/[0-9]+/)[0];
+        if(textMes !== 'Пропустить') currentUsers[chatId].count = +textMes.match(/[0-9]+/)[0] > 100 ? 100 : textMes.match(/[0-9]+/)[0] ;
         currentUsers[chatId].step = 'offset'
         return bot.sendMessage(chatId, 'Напишите смещение относительно первого найденного пользователя.(Число)');
     }
 
     if(currentUsers[chatId].step = 'offset'){
         if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное смещение.(Напишите число)');
-        if(textMes !== 'Пропустить') currentUsers[chatId].offset = textMes.match(/[0-9]+/)[0];
+        if(textMes !== 'Пропустить') currentUsers[chatId].offset = +textMes.match(/[0-9]+/)[0] > 100 ? 100 : textMes.match(/[0-9]+/)[0] ;
+        var options = {reply_markup: JSON.stringify({
+                    hide_keyboard: true
+        })};
         delete currentUsers[chatId].step
         requestHandler(currentUsers[chatId], bot, chatId);
         delete currentUsers[chatId];
-        return bot.sendMessage(chatId, 'Выполняю поиск...');
+        return bot.sendMessage(chatId, 'Выполняю поиск...', options);
     }
-
 });
