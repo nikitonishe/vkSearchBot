@@ -13,15 +13,15 @@ var getCityIdPromise = function(cityTitle){
 						v: 5.52};
 			cityTitle = cityTitle.charAt(0).toUpperCase() + cityTitle.substr(1);
 			request.post(url,{form: form},(err, res, body)=>{
-				if(err) reject(err);
+				if(err) return reject(err);
 				body = JSON.parse(body).response.items;
 				for(var i = 0, l = body.length; i < l; i++){
 					if(body[i].title === cityTitle) resolve(body[i].id);
 				}
-				resolve(undefined);
+				resolve();
 			});
 		}
-		else resolve(undefined);
+		else resolve();
 	});
 };
 
@@ -36,7 +36,7 @@ var generateForm = function(req){
 var requestPromise = function(bot, chatId, url, form){
 	return new Promise((resolve, reject)=>{
 		request.post(url,{form: form},(err, res, body)=>{
-			if(err) reject(err);
+			if(err) return reject(err);
 			body = JSON.parse(body).response.items;
 			if(!body || !body[0]) return bot.sendMessage(chatId,'Ничего не найдено =(. /search - начать новый поиск.');
 			resolve(body);	
@@ -55,7 +55,7 @@ var requestHandler = function(req, bot, chatId){
 		})
 		.then((form)=>requestPromise(bot, chatId, url, form))
 		.then(body=>view(body, bot, chatId)())
-		.catch(err=>console.log(err));
+		.catch(err=>console.error(err));
 };
 
 module.exports = requestHandler;

@@ -11,6 +11,7 @@ var cancelCurrentSearch = function(chatId){
         bot.sendMessage(chatId, 'Нет текущего поиска. /search - начать поиск');
         return;
     }
+    currentUsers[chatId] = null;
     delete currentUsers[chatId];
     bot.sendMessage(chatId, 'Поиск отменен. /search - начать новый поиск');
     return;
@@ -19,6 +20,7 @@ var cancelCurrentSearch = function(chatId){
 var startSearching = function(chatId){
     if(currentUsers[chatId]){
         bot.sendMessage(chatId, 'Поиск отменен.');
+        currentUsers[chatId] = null;
         delete currentUsers[chatId];
     }
     var options = {reply_markup: JSON.stringify({
@@ -70,28 +72,28 @@ bot.on('text', function(message){
     }
 
     if(currentUsers[chatId].step === 'age_from'){
-        if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректный возраст.(Напишите число)');
+        if(!textMes.match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректный возраст.(Напишите число)');
         if(textMes !== 'Пропустить') currentUsers[chatId].age_from = textMes.match(/[0-9]+/)[0];
         currentUsers[chatId].step = 'age_to';
         return bot.sendMessage(chatId, 'Пользователей до какого возраста искать?(Число)');
     }
 
     if(currentUsers[chatId].step === 'age_to'){
-        if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректный возраст.(Напишите число)');
+        if(!textMes.match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректный возраст.(Напишите число)');
         if(textMes !== 'Пропустить') currentUsers[chatId].age_to = textMes.match(/[0-9]+/)[0];
         currentUsers[chatId].step = 'count';
         return bot.sendMessage(chatId, 'Отправьте максимальное количество пользователей, но не больше 100.(По умолчанию 20)');
     } 
 
     if(currentUsers[chatId].step === 'count'){
-        if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное колличество.(Напишите число)');
+        if(!textMes.match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное колличество.(Напишите число)');
         if(textMes !== 'Пропустить') currentUsers[chatId].count = +textMes.match(/[0-9]+/)[0] > 100 ? 100 : textMes.match(/[0-9]+/)[0] ;
         currentUsers[chatId].step = 'offset'
         return bot.sendMessage(chatId, 'Напишите смещение относительно первого найденного пользователя.(Число)');
     }
 
     if(currentUsers[chatId].step = 'offset'){
-        if(!textMes[0].match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное смещение.(Напишите число)');
+        if(!textMes.match(/[0-9]+/) && textMes !== 'Пропустить') return bot.sendMessage(chatId, 'Некорректное смещение.(Напишите число)');
         if(textMes !== 'Пропустить') currentUsers[chatId].offset = +textMes.match(/[0-9]+/)[0] > 100 ? 100 : textMes.match(/[0-9]+/)[0] ;
         var options = {reply_markup: JSON.stringify({
                     hide_keyboard: true
